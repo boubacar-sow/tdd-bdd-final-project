@@ -98,9 +98,34 @@ def create_products():
 # L I S T   A L L   P R O D U C T S
 ######################################################################
 
-#
-# PLACE YOUR CODE TO LIST ALL PRODUCTS HERE
-#
+######################################################################
+# L I S T   A L L   P R O D U C T S (with optional filters)
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    app.logger.info("Request to list products...")
+
+    name = request.args.get("name")
+    category = request.args.get("category")
+    available = request.args.get("available")
+
+    query = Product.query
+
+    if name:
+        app.logger.info("Filtering by name: %s", name)
+        query = query.filter_by(name=name)
+    if category:
+        app.logger.info("Filtering by category: %s", category)
+        query = query.filter_by(category=category)
+    if available:
+        is_available = available.lower() == "true"
+        app.logger.info("Filtering by availability: %s", is_available)
+        query = query.filter_by(available=is_available)
+
+    results = query.all()
+    return jsonify([product.serialize() for product in results]), status.HTTP_200_OK
+
+
 
 ######################################################################
 # R E A D   A   P R O D U C T
