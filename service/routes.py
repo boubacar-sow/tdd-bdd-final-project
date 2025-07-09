@@ -98,9 +98,6 @@ def create_products():
 # L I S T   A L L   P R O D U C T S
 ######################################################################
 
-######################################################################
-# L I S T   A L L   P R O D U C T S (with optional filters)
-######################################################################
 @app.route("/products", methods=["GET"])
 def list_products():
     app.logger.info("Request to list products...")
@@ -153,46 +150,32 @@ def get_products(product_id):
 ######################################################################
 # U P D A T E   A   P R O D U C T
 ######################################################################
-
-#
-# PLACE YOUR CODE TO UPDATE A PRODUCT HERE
-#
-@app.route("/products/<int:product_id>", methods=["GET"])
-def get_products(product_id):
-    """
-    Retrieve a single Product
-
-    This endpoint will return a Product based on it's id
-    """
-    app.logger.info("Request to Retrieve a product with id [%s]", product_id)
+@app.route("/products/<int:product_id>", methods=["PUT"])
+def update_product(product_id):
+    app.logger.info("Request to Update a product with id [%s]", product_id)
+    check_content_type("application/json")
 
     product = Product.find(product_id)
     if not product:
         abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
 
-    app.logger.info("Returning product: %s", product.name)
+    data = request.get_json()
+    product.deserialize(data)
+    product.id = product_id  # ensure the ID is not changed
+    product.update()
+
     return product.serialize(), status.HTTP_200_OK
+
 
 ######################################################################
 # D E L E T E   A   P R O D U C T
 ######################################################################
-
-
-#
-# PLACE YOUR CODE TO DELETE A PRODUCT HERE
-#
-@app.route("/products/<int:product_id>", methods=["GET"])
-def get_products(product_id):
-    """
-    Retrieve a single Product
-
-    This endpoint will return a Product based on it's id
-    """
-    app.logger.info("Request to Retrieve a product with id [%s]", product_id)
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    app.logger.info("Request to Delete a product with id [%s]", product_id)
 
     product = Product.find(product_id)
-    if not product:
-        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
+    if product:
+        product.delete()
 
-    app.logger.info("Returning product: %s", product.name)
-    return product.serialize(), status.HTTP_200_OK
+    return "", status.HTTP_204_NO_CONTENT
